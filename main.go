@@ -13,8 +13,15 @@ import (
 )
 
 func main() {
-	path := os.Getenv("FRONT_BASE_URL")
-	if path == "" {
+	port, ok := os.LookupEnv("PORT")
+	if !ok {
+		log.Fatal("ポート番号を設定ください")
+	}
+	srv := startServer(port)
+	fmt.Printf("\x1b[32m%s\x1b[0m\n", "サーバーが起動しました!!")
+
+	path, ok := os.LookupEnv("FRONT_BASE_URL")
+	if !ok {
 		log.Fatal("パスのURLを設定ください")
 	}
 	ticker := time.NewTicker(10 * time.Second)
@@ -35,6 +42,11 @@ L:
 			break L
 		}
 	}
+	<-ctx.Done()
+	if err := srv.Shutdown(context.Background()); err != nil {
+		log.Printf("サーバーのシャットダウンに失敗: (error: %s)", err.Error())
+	}
+	fmt.Printf("\x1b[32m%s\x1b[0m\n", "サーバーがシャットダウンしました!!")
 	fmt.Printf("\x1b[32m%s\x1b[0m\n", "ヘルスチェックを終了しました!!")
 }
 
@@ -50,4 +62,14 @@ func healthCheck(path string) error {
 	}()
 	io.Copy(io.Discard, res.Body)
 	return nil
+}
+
+func startServer(port string) *http.Server {
+	srv := &http.Server{Addr: fmt.Sprintf(":%s", port)}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("サーバーの起動に失敗:%v", err)
+		}
+	}()
+	return srv
 }
