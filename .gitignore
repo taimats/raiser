@@ -1,1 +1,9 @@
 .env*
+
+.terraform
+*.tfvars*
+*.tfstate*
+src
+.terraform.lock*
+
+script
