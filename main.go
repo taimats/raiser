@@ -17,7 +17,7 @@ func main() {
 	if !ok {
 		log.Fatal("パスのURLを設定ください")
 	}
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(1 * time.Minute)
 	l := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	fmt.Printf("\x1b[32m%s\x1b[0m\n", "ヘルスチェックを開始します...")
 
