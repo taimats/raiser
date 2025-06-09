@@ -13,11 +13,15 @@ import (
 )
 
 func main() {
-	path, ok := os.LookupEnv("FRONT_BASE_URL")
+	fp, ok := os.LookupEnv("FRONT_BASE_URL")
 	if !ok {
 		log.Fatal("パスのURLを設定ください")
 	}
-	ticker := time.NewTicker(1 * time.Minute)
+	bp, ok := os.LookupEnv("BACK_BASE_URL")
+	if !ok {
+		log.Fatal("パスのURLを設定ください")
+	}
+	ticker := time.NewTicker(5 * time.Minute)
 	l := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	fmt.Printf("\x1b[32m%s\x1b[0m\n", "ヘルスチェックを開始します...")
 
@@ -27,8 +31,11 @@ L:
 	for {
 		select {
 		case <-ticker.C:
-			if err := healthCheck(path); err != nil {
-				l.Error("REQUEST_ERROR", slog.String("err", err.Error()))
+			if err := healthCheck(fp); err != nil {
+				l.Error("REQUEST_ERROR", slog.String("front_error", err.Error()))
+			}
+			if err := healthCheck(bp); err != nil {
+				l.Error("REQUEST_ERROR", slog.String("back_error", err.Error()))
 			}
 			l.Info("REQUEST_OK")
 		case <-ctx.Done():
